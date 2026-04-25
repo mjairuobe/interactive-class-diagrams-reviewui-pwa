@@ -110,7 +110,8 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
   const [selectedCode, setSelectedCode] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<{ sender: "user" | "ai"; text: string }[]>([]);
+  const [messages, setMessages] = useState<{ sender: "user" | "ai"; text: string; isHtml?: boolean }[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isSendDropdownOpen, setIsSendDropdownOpen] = useState(false);
 
@@ -194,11 +195,26 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
-    setMessages((prev) => [...prev, { sender: "user", text: inputValue }]);
+    const userMsg = inputValue;
+    setMessages((prev) => [...prev, { sender: "user", text: userMsg }]);
     setInputValue("");
     setIsSendDropdownOpen(false);
     
-    // Simuliere eine KI-Antwort
+    // Spezifischer Trigger für "Datenbank"
+    if (userMsg.toLowerCase().includes("datenbank")) {
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [...prev, { 
+          sender: "ai", 
+          isHtml: true,
+          text: 'Die Datenbankabfrage zeigt, dass ein relationales Datenbankmanagementsystem verwendet wird. Anhand der <a href="#" class="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">requirements.txt</a> habe ich festgestellt, dass es sich um eine PostgreSQL-Datenbank handelt.'
+        }]);
+      }, 500);
+      return;
+    }
+    
+    // Simuliere eine Standard-KI-Antwort
     setTimeout(() => {
       setMessages((prev) => [...prev, { sender: "ai", text: "Das ist eine simulierte Antwort der KI. Ich habe deinen Code gelesen!" }]);
     }, 1000);
@@ -329,11 +345,28 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.map((msg, idx) => (
                       <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm shadow-sm ${msg.sender === "user" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-200"}`}>
-                          {msg.text}
+                        <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm shadow-sm ${msg.sender === "user" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-200 leading-relaxed"}`}>
+                          {msg.isHtml ? (
+                            <span dangerouslySetInnerHTML={{ __html: msg.text }} />
+                          ) : (
+                            msg.text
+                          )}
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Tipp-Animation (Typing Indicator) */}
+                    {isTyping && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[85%] rounded-lg bg-slate-800 px-4 py-3 shadow-sm">
+                          <div className="flex gap-1.5 items-center">
+                            <motion.div className="h-1.5 w-1.5 rounded-full bg-slate-400" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} />
+                            <motion.div className="h-1.5 w-1.5 rounded-full bg-slate-400" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} />
+                            <motion.div className="h-1.5 w-1.5 rounded-full bg-slate-400" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Input Area */}
