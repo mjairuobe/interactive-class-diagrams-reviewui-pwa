@@ -413,11 +413,37 @@ function App() {
       }
     };
 
-    // 2. Labels klickbar machen
+    // 2. Labels klickbar machen und Basis-Layout für ALLE Labels setzen
     validLabels.forEach(({ fo, rel }) => {
       const inner = fo.querySelector<HTMLElement>("p, span, div") || fo;
       inner.style.cursor = "pointer";
       inner.onclick = (e) => handleRelationClick(e, rel);
+
+      const labelElement = fo.querySelector<HTMLElement>(".edgeLabel") || fo.querySelector<HTMLElement>("span, div");
+      if (labelElement) {
+        // Verstecke den störenden Standard-Hintergrund von Mermaid
+        const rectBg = fo.parentElement?.querySelector("rect");
+        if (rectBg) rectBg.style.display = "none";
+
+        const wrapperDiv = fo.querySelector<HTMLElement>("div");
+        if (wrapperDiv && wrapperDiv !== labelElement) wrapperDiv.style.backgroundColor = "transparent";
+
+        // Standard-Styling (wird von Highlights ggf. farblich überschrieben)
+        labelElement.style.backgroundColor = "#f8fafc";
+        labelElement.style.color = "#334155";
+        labelElement.style.fontWeight = "600";
+        labelElement.style.borderRadius = "6px";
+        labelElement.style.padding = "4px 12px";
+        labelElement.style.margin = "0";
+        labelElement.style.display = "inline-flex";
+        labelElement.style.justifyContent = "center";
+        labelElement.style.alignItems = "center";
+        labelElement.style.textAlign = "center";
+        labelElement.style.whiteSpace = "nowrap";
+
+        fo.style.overflow = "visible";
+        labelElement.style.transform = "translate(-12px, -4px)";
+      }
     });
 
     // 3. Pfeile/Linien (Paths/Polygons) klickbar machen
@@ -650,44 +676,14 @@ function App() {
       });
       if (!target) return;
       
-      // Finde das tiefste Label-Element, um Mermaids Default-Styling direkt zu überschreiben
       const inner = target.querySelector<HTMLElement>(".edgeLabel") || target.querySelector<HTMLElement>("span, div");
       if (!inner) return;
       
-      // Verstecke den störenden Standard-Hintergrund von Mermaid (oft ein <rect> Element hinter dem Label)
-      const rectBg = target.parentElement?.querySelector("rect");
-      if (rectBg) {
-        rectBg.style.display = "none";
-      }
-
-      // Verstecke auch eventuelle Backgrounds des Wrapper-Divs, falls vorhanden
-      const wrapperDiv = target.querySelector<HTMLElement>("div");
-      if (wrapperDiv && wrapperDiv !== inner) {
-        wrapperDiv.style.backgroundColor = "transparent";
-      }
-      
       const style = MARKER_STYLE[rm.marker];
       
+      // Nur Farben überschreiben, das Layout wurde bereits in makeRelationsClickable gesetzt
       inner.style.backgroundColor = style.fill;
       inner.style.color = style.color;
-      inner.style.fontWeight = "700";
-      inner.style.borderRadius = "6px";
-      
-      // Symmetrisches Padding für exakt zentrierten Text
-      inner.style.padding = "4px 12px";
-      inner.style.margin = "0";
-      inner.style.display = "inline-flex";
-      inner.style.justifyContent = "center";
-      inner.style.alignItems = "center";
-      inner.style.textAlign = "center";
-      inner.style.whiteSpace = "nowrap";
-
-      // Verhindere, dass die Box durch das foreignObject abgeschnitten wird
-      target.style.overflow = "visible";
-      
-      // Da das hinzugefügte Padding das Element nach rechts/unten wachsen lässt, 
-      // verschieben wir es zurück, damit es exakt über dem Ursprungsmittelpunkt zentriert bleibt.
-      inner.style.transform = "translate(-12px, -4px)";
       
       if (rm.marker === "removed") inner.style.textDecoration = "line-through";
     });
