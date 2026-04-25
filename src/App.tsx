@@ -315,7 +315,7 @@ function App() {
         // Wenn es nicht der Klassentitel ist und direkter Text vorhanden ist
         if (txt && txt !== id) {
             el.style.cursor = "pointer";
-            el.classList.add("hover:opacity-80", "transition-opacity");
+            el.classList.add("hover:opacity-80", "transition-all", "underline", "underline-offset-2", "decoration-slate-400/50", "hover:decoration-indigo-400");
             el.onclick = (e) => {
                e.stopPropagation();
                e.preventDefault();
