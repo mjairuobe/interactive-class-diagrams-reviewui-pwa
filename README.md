@@ -6,7 +6,7 @@ Die meiste Denkarbeit passiert jedoch nicht auf Knopfdruck am Schreibtisch. Die 
 
 ## Hintergrund
 
-In meinen vorherigen Konzepten ([markup-class-diagram-ui-poc](https://github.com/mjairuobe/markup-class-diagram-ui-poc) und [Mobile-first-AI-Review-App-Konzept](https://github.com/mjairuobe/Mobile-first-AI-Review-App-Konzept-)) habe ich beschrieben, dass wir neue Tools brauchen, um auch große, komplexe Codebasen vom Handy aus schnell überblicken und prüfen zu können. 
+In meinen vorherigen Konzepten ([markup-class-diagram-ui-poc](https://github.com/mjairuobe/markup-class-diagram-ui-poc) und [Mobile-first-AI-Review-App-Konzept](https://github.com/mjairuobe/Mobile-first-AI-Review-App-Konzept-)) habe ich beschrieben, dass wir neue Tools brauchen, um auch große, komplexe Codebasen überblicken zu können. Bei Entwicklung mit Agenten ist Codereview eine wichtige Herausforderung: der Überblick aber auch das Detail muss im Fokus bleiben.
 
 Klassendiagramme (z.B. generiert durch Mermaid) eignen sich hierfür hervorragend, da sie auf einem hochformatigen Handydisplay meist ohne viel Scrollen darstellbar sind und einen sofortigen architektonischen Überblick liefern. Geänderte Funktionen oder Variablen können direkt im Diagramm hervorgehoben und interaktiv klickbar gemacht werden.
 
@@ -15,7 +15,8 @@ Klassendiagramme (z.B. generiert durch Mermaid) eignen sich hierfür hervorragen
 Dieses Proof of Concept (PoC) zielt darauf ab, einen **nahtlosen, Mobile-first Review-Prozess** über interaktive Klassendiagramme zu schaffen:
 
 - **Automatische Generierung:** Klassendiagramme werden bei jedem Commit (z.B. aus Git-Diffs) automatisch aktualisiert.
-- **Interaktive Relationen:** Mit Klicks auf Relationen (z.B. `sells` oder `pays`) lässt sich butterweich zwischen Klassen hin- und hernavigieren ("Boomerang"-Effekt).
+- **Overview- und Detailfokus:** Viewport zoomt standardmäßig auf ein Diagrammteil (z. B. Klasse)
+- **Interaktive Relationen:** Mit Klicks auf Relationen (z.B. `sells` oder `pays`) lässt sich butterweich zwischen Klassen hin- und hernavigieren
 - **Code-Einblicke:** Ein Klick auf Methoden oder Deklarationen im Diagramm öffnet einen CodeViewer im Slider, um sofort die konkrete Implementation zu betrachten.
 - **KI-Unterstützung:** Direkt im CodeViewer kann über ein Kontextmenü ("Ask / Comment") ein KI-Chat gestartet werden, um Rückfragen zum Quellcode zu stellen oder Aufgaben per Webhook an Agenten zu delegieren.
 
@@ -27,11 +28,9 @@ Um Modifikationen im Diagramm schnell erfassen zu können, nutzen wir eine einfa
 *   <span style="color: #22c55e; font-weight: bold;">🟩 Grün</span>: Dieser Code ist komplett **neu hinzugekommen**.
 *   <span style="color: #ef4444; font-weight: bold;">🟥 Rot</span>: Dieser Code wurde **entfernt**.
 
-*(Anmerkung: In diesem PoC wurden die Dummy-Diffs noch nicht farblich im Diagramm abgebildet, das ist Teil der Ausbaustufe!)*
-
 ## Demo & Impressionen
 
-### Nahtlose Navigation zwischen Klassen (Boomerang-Effekt)
+### Nahtlose Navigation zwischen Klassen
 Ein Klick auf eine Relation wie `sells` animiert fließend zur Ziel-Klasse, ein erneuter Klick bringt uns wieder zurück.
 
 ![Boomerang Navigation](public/boomerang_sells.webp)
@@ -54,6 +53,5 @@ Aus dem Chat heraus lassen sich Aktionen über ein Dropdown-Menü direkt an exte
 ## Ausblick
 
 Das PoC beweist: Code-Reviews und Architektur-Verständnis lassen sich sehr wohl auf Smartphones portieren. Die nächsten Schritte wären:
-1.  **Dynamische Backend-Anbindung:** Ersetzen der Dummy-Diffs durch echte Git-Integration (automatische Generierung der Mermaid-Graphen).
-2.  **Farbliches Diff-Highlighting im Diagramm:** Die oben genannte Farblegende als CSS-Styles auf die SVG-Elemente anwenden.
-3.  **Template-System für Responses:** Längenbegrenzungen und klare Vorlagen für KI-Antworten, damit Reviews noch schneller konsumierbar sind (z.B. für Bugfix-Reports oder PR-Summaries).
+1.  **Dynamische Backend-Anbindung:** Ersetzen der Dummy-Diffs durch echte Git-Integration (automatische Generierung der Mermaid-Graphen). Einstellen einer Standard Compare-Branch (z. B. aktuelles Commit immer mit main vergleichen). Geänderte Codezeilen über git diff feststellen, geänderte Methoden/Scopes z. B. durch ´ast´-Libary in Python. 
+2.  **Anbindung an Ökosysteme von AI-Agenten:** Automatische Generiung von einem Applink/Deeplink zum Codereview nach Push auf Github; Webhook Anbindung,um Kritik und Verbesserungsvorschläge an vergangene Codingsitzungen zu senden; Reviewprozess an Kanban Boards für Agenten Orchestrierung anbinden z. B. VibeKanban oder Agent Kanban
