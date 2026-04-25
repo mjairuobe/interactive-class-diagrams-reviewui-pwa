@@ -338,14 +338,15 @@ function App() {
   }
 
   function makeRelationsClickable() {
-    // Einfacher Parser für Diagramm-Relationen, um Klick-Ziele zu definieren
-    const targets: Record<string, string> = {};
+    // Parser für Diagramm-Relationen, um Klick-Ziele (beide Richtungen) zu definieren
+    const relationsMap: Record<string, { from: string; to: string }> = {};
     const re = /([A-Za-z_][\w]*)\s*".*?"\s*-->\s*".*?"\s*([A-Za-z_][\w]*)\s*:\s*(.+)/g;
     let m;
     while ((m = re.exec(DIAGRAM)) !== null) {
+      const from = m[1];
       const to = m[2];
       const label = m[3].trim();
-      targets[label] = to;
+      relationsMap[label] = { from, to };
     }
 
     if (!containerRef.current) return;
@@ -354,15 +355,59 @@ function App() {
     );
 
     fos.forEach((fo) => {
-      if (fo.closest("g.classGroup, g.node")) return false; // Ist innerhalb einer Klasse
+      if (fo.closest("g.classGroup, g.node")) return; // Ist innerhalb einer Klasse
       const label = (fo.textContent ?? "").trim();
-      if (targets[label]) {
+      const rel = relationsMap[label];
+      
+      if (rel) {
         const inner = fo.querySelector<HTMLElement>("p, span, div") || fo;
         inner.style.cursor = "pointer";
         inner.onclick = (e) => {
           e.stopPropagation();
           e.preventDefault();
-          focusClass(targets[label]);
+          
+          if (!containerRef.current) return;
+          const wrapper = containerRef.current.parentElement;
+          const nodes = containerRef.current.querySelectorAll<SVGGElement>("g.node, g.classGroup");
+          let fromNode: SVGGElement | null = null;
+          let toNode: SVGGElement | null = null;
+          
+          nodes.forEach(n => {
+            const id = nodeId(n);
+            if (id === rel.from) fromNode = n;
+            if (id === rel.to) toNode = n;
+          });
+
+          if (!wrapper || !fromNode || !toNode) {
+            focusClass(rel.to); // Fallback
+            return;
+          }
+
+          const wrapperRect = wrapper.getBoundingClientRect();
+          const fromRect = fromNode.getBoundingClientRect();
+          const toRect = toNode.getBoundingClientRect();
+
+          const getVisiblePercentage = (rect: DOMRect, wrap: DOMRect) => {
+            const left = Math.max(rect.left, wrap.left);
+            const right = Math.min(rect.right, wrap.right);
+            const top = Math.max(rect.top, wrap.top);
+            const bottom = Math.min(rect.bottom, wrap.bottom);
+            const w = Math.max(0, right - left);
+            const h = Math.max(0, bottom - top);
+            const visibleArea = w * h;
+            const totalArea = rect.width * rect.height;
+            return totalArea > 0 ? visibleArea / totalArea : 0;
+          };
+
+          const fromPct = getVisiblePercentage(fromRect, wrapperRect);
+          const toPct = getVisiblePercentage(toRect, wrapperRect);
+
+          // Springe zu der Klasse, die prozentual weniger sichtbar ist
+          if (fromPct < toPct) {
+            focusClass(rel.from);
+          } else {
+            focusClass(rel.to);
+          }
         };
       }
     });
