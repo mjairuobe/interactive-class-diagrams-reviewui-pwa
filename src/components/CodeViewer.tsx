@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, MessageSquare, Send, ChevronDown, Bot, User } from "lucide-react";
 
 export interface CodeViewerProps {
   isOpen: boolean;
@@ -105,6 +105,14 @@ const DUMMY_DIFFS: Record<string, string> = {
 
 export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
   const [html, setHtml] = useState<string>("");
+  
+  // Chat & Selection States
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number } | null>(null);
+  const [selectedCode, setSelectedCode] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState<{ sender: "user" | "ai"; text: string }[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isSendDropdownOpen, setIsSendDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -124,6 +132,60 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
     
     highlight();
   }, [isOpen, title]);
+
+  // Schließe den Chat und Tooltip, wenn der CodeViewer geschlossen wird
+  useEffect(() => {
+    if (!isOpen) {
+      setIsChatOpen(false);
+      setTooltipPos(null);
+    }
+  }, [isOpen]);
+
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      setTooltipPos(null);
+      return;
+    }
+    const text = selection.toString().trim();
+    if (!text) {
+      setTooltipPos(null);
+      return;
+    }
+    
+    // Position direkt über der Markierung berechnen
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    setTooltipPos({
+      top: rect.top - 45,
+      left: rect.left + rect.width / 2,
+    });
+    setSelectedCode(text);
+  };
+
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return;
+    setMessages((prev) => [...prev, { sender: "user", text: inputValue }]);
+    setInputValue("");
+    setIsSendDropdownOpen(false);
+    
+    // Simuliere eine KI-Antwort
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { sender: "ai", text: "Das ist eine simulierte Antwort der KI. Ich habe deinen Code gelesen!" }]);
+    }, 1000);
+  };
+
+  const handleSendWebhook = () => {
+    if (!inputValue.trim()) return;
+    setMessages((prev) => [...prev, { sender: "user", text: `[Webhook] ${inputValue}` }]);
+    setInputValue("");
+    setIsSendDropdownOpen(false);
+    
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { sender: "ai", text: "✅ Deine Anfrage wurde als Ticket an den Webhook übermittelt." }]);
+    }, 600);
+  };
 
   return (
     <AnimatePresence>
@@ -160,7 +222,10 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
             </div>
 
             {/* Content / Code */}
-            <div className="flex-1 overflow-auto p-4">
+            <div 
+              className="flex-1 overflow-auto p-4 relative"
+              onMouseUp={handleMouseUp}
+            >
               <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200/80">
                 <strong>Dummy Diff Ansicht:</strong> Hier siehst du beispielhaft, wie geänderte Zeilen dargestellt werden. Später werden hier die echten Diff-Informationen der Versionskontrolle angezeigt.
               </div>
@@ -169,6 +234,136 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             </div>
+            
+            {/* Tooltip für Ask/Comment */}
+            <AnimatePresence>
+              {tooltipPos && !isChatOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="fixed z-[60] -translate-x-1/2 rounded-md border border-slate-700 bg-slate-800 p-1 shadow-lg"
+                  style={{ top: tooltipPos.top, left: tooltipPos.left }}
+                >
+                  <button
+                    onClick={() => {
+                      setIsChatOpen(true);
+                      setTooltipPos(null);
+                      if (messages.length === 0) {
+                        setMessages([{ sender: "ai", text: "Hallo! Was möchtest du zu dem markierten Code wissen?" }]);
+                      }
+                    }}
+                    className="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-indigo-600 hover:text-white"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Ask / Comment
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* AI Chat Popup */}
+            <AnimatePresence>
+              {isChatOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                  className="absolute bottom-4 left-4 right-4 z-[70] flex flex-col overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl"
+                  style={{ maxHeight: "60vh" }}
+                >
+                  {/* Chat Header */}
+                  <div className="flex items-center justify-between border-b border-slate-800 bg-slate-800/80 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-5 w-5 text-indigo-400" />
+                      <h3 className="text-sm font-semibold text-slate-200">AI Assistant</h3>
+                    </div>
+                    <button
+                      onClick={() => setIsChatOpen(false)}
+                      className="rounded-full p-1 text-slate-400 hover:bg-slate-700 hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  {/* Markierter Code Kontext */}
+                  <div className="border-b border-slate-800 bg-slate-900/50 p-3 text-xs">
+                    <span className="text-slate-500">Kontext: </span>
+                    <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">
+                      {selectedCode.length > 40 ? selectedCode.substring(0, 40) + "..." : selectedCode}
+                    </code>
+                  </div>
+
+                  {/* Chat Messages */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {messages.map((msg, idx) => (
+                      <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm shadow-sm ${msg.sender === "user" ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-200"}`}>
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Input Area */}
+                  <div className="border-t border-slate-800 bg-slate-900 p-3">
+                    <div className="flex items-end gap-2">
+                      <textarea
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Stelle eine Frage..."
+                        className="max-h-32 min-h-[40px] flex-1 resize-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                      />
+                      
+                      {/* Send Button Group */}
+                      <div className="relative flex items-center">
+                        <div className="flex rounded-lg shadow-sm">
+                          <button
+                            onClick={handleSendMessage}
+                            className="flex items-center justify-center rounded-l-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none"
+                            title="Senden"
+                          >
+                            <Send className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setIsSendDropdownOpen(!isSendDropdownOpen)}
+                            className="flex items-center justify-center rounded-r-lg border-l border-indigo-700 bg-indigo-600 px-2 py-2 text-white hover:bg-indigo-700 focus:outline-none"
+                            title="Weitere Sende-Optionen"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {/* Dropdown Menu */}
+                        <AnimatePresence>
+                          {isSendDropdownOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className="absolute bottom-full right-0 mb-2 w-48 rounded-md border border-slate-700 bg-slate-800 py-1 shadow-lg"
+                            >
+                              <button
+                                onClick={handleSendWebhook}
+                                className="w-full px-4 py-2 text-left text-sm text-slate-200 hover:bg-slate-700 focus:outline-none"
+                              >
+                                An Webhook senden
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             <style>{`
               /* Custom styles for shiki diff */
