@@ -647,21 +647,9 @@ function App() {
     fos.forEach((fo) => {
       if (fo.closest("g.classGroup, g.node")) return; // Nur Relation-Labels
       
-      // Finde das tiefste Label-Element, um Mermaids Default-Styling direkt zu überschreiben
+      // Finde das tiefste Label-Element
       const inner = fo.querySelector<HTMLElement>(".edgeLabel") || fo.querySelector<HTMLElement>("span, div");
       if (!inner) return;
-      
-      // Verstecke den störenden Standard-Hintergrund von Mermaid (oft ein <rect> Element hinter dem Label)
-      const rectBg = fo.parentElement?.querySelector("rect");
-      if (rectBg) {
-        rectBg.style.display = "none";
-      }
-
-      // Verstecke auch eventuelle Backgrounds des Wrapper-Divs, falls vorhanden
-      const wrapperDiv = fo.querySelector<HTMLElement>("div");
-      if (wrapperDiv && wrapperDiv !== inner) {
-        wrapperDiv.style.backgroundColor = "transparent";
-      }
       
       const labelText = (fo.textContent ?? "").trim();
       const markerInfo = relationMarkers.find((rm) => rm.label === labelText);
@@ -673,10 +661,11 @@ function App() {
         inner.style.fontWeight = "700";
         if (markerInfo.marker === "removed") inner.style.textDecoration = "line-through";
       } else {
-        // Default-Styling für NICHT hervorgehobene Relationen
-        inner.style.backgroundColor = "#f1f5f9"; // unauffälliges Slate-100
-        inner.style.color = "#475569";
-        inner.style.fontWeight = "600";
+        // Für NICHT hervorgehobene Relationen:
+        // Wir setzen KEINE eigene Hintergrundfarbe, sodass der Mermaid-Standard erhalten bleibt!
+        inner.style.backgroundColor = "";
+        inner.style.color = "";
+        inner.style.fontWeight = "normal";
         inner.style.textDecoration = "none";
       }
       
