@@ -141,27 +141,55 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
     }
   }, [isOpen]);
 
-  const handleMouseUp = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
-      setTooltipPos(null);
-      return;
-    }
-    const text = selection.toString().trim();
-    if (!text) {
-      setTooltipPos(null);
-      return;
-    }
-    
-    // Position direkt über der Markierung berechnen
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    
-    setTooltipPos({
-      top: rect.top - 45,
-      left: rect.left + rect.width / 2,
-    });
+  const updateContextAndNotify = (text: string, pos: { top: number; left: number } | null) => {
     setSelectedCode(text);
+    if (isChatOpen) {
+      // Wenn der Chat schon offen ist, zeige keinen Tooltip, sondern sende direkt eine Event-Meldung
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.text === `📝 Fokus geändert auf: "${text}"`) return prev;
+        return [...prev, { sender: "ai", text: `📝 Fokus geändert auf: "${text}"` }];
+      });
+      setTooltipPos(null);
+    } else {
+      setTooltipPos(pos);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    // 1. Text-Selektion (Drag) prüfen
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) {
+      const text = selection.toString().trim();
+      if (text) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        updateContextAndNotify(text, {
+          top: rect.top - 45,
+          left: rect.left + rect.width / 2,
+        });
+        return;
+      }
+    }
+    
+    // 2. Klick/Tap auf einzelnes Wort/Token prüfen
+    const target = e.target as HTMLElement;
+    // Shiki rendert echte Tokens in Spans, die nicht die Klasse "line" haben
+    if (target.tagName === "SPAN" && !target.classList.contains("line")) {
+      const word = target.textContent?.trim();
+      if (word && word.length > 0) {
+        updateContextAndNotify(word, {
+          top: e.clientY - 45,
+          left: e.clientX,
+        });
+        return;
+      }
+    }
+    
+    // Klick ins Leere schließt den Tooltip
+    if (!isChatOpen) {
+      setTooltipPos(null);
+    }
   };
 
   const handleSendMessage = () => {
@@ -224,7 +252,7 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
             {/* Content / Code */}
             <div 
               className="flex-1 overflow-auto p-4 relative"
-              onMouseUp={handleMouseUp}
+              onPointerUp={handlePointerUp}
             >
               <div className="mb-4 rounded-md border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200/80">
                 <strong>Dummy Diff Ansicht:</strong> Hier siehst du beispielhaft, wie geänderte Zeilen dargestellt werden. Später werden hier die echten Diff-Informationen der Versionskontrolle angezeigt.
@@ -250,7 +278,10 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
                       setIsChatOpen(true);
                       setTooltipPos(null);
                       if (messages.length === 0) {
-                        setMessages([{ sender: "ai", text: "Hallo! Was möchtest du zu dem markierten Code wissen?" }]);
+                        setMessages([{ sender: "ai", text: `Hallo! Du hast eine Frage zu "${selectedCode}"? Wie kann ich helfen?` }]);
+                      } else {
+                        // Falls schon ein Chat existiert und das Tooltip genutzt wurde
+                        setMessages(prev => [...prev, { sender: "ai", text: `📝 Fokus geändert auf: "${selectedCode}"` }]);
                       }
                     }}
                     className="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-indigo-600 hover:text-white"
