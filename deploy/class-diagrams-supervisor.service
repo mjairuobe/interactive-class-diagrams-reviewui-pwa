@@ -1,0 +1,37 @@
+[Unit]
+Description=Vite Dev Remote Supervisor
+Documentation=https://github.com/mjairuobe/interactive-class-diagrams-reviewui-pwa
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vite-dev-remote
+ExecStart=/usr/bin/node /opt/vite-dev-remote/dist/src/supervisor.js
+Restart=always
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vite-dev-remote
+
+# --- configuration (override with `systemctl --user edit`) ---
+# User-local pnpm (not on default PATH for systemd --user)
+Environment=PATH=%h/.local/share/pnpm:/usr/local/bin:/usr/bin
+Environment=NODE_ENV=production
+Environment=LOG_LEVEL=info
+Environment=SUPERVISOR_HOST=127.0.0.1
+Environment=SUPERVISOR_PORT=40990
+Environment=VITE_HOST=127.0.0.1
+Environment=VITE_PORT=40989
+Environment=REPO_DIR=%h/interactive-class-diagrams-reviewui-pwa
+Environment=REPO_URL=https://github.com/mjairuobe/interactive-class-diagrams-reviewui-pwa.git
+Environment=TRACKED_REF=main
+Environment=VITE_PROJECT_SUBDIR=
+Environment=VITE_BASE_PATH=/
+Environment=PACKAGE_MANAGER=npm
+Environment=KILL_PORT_OWNER_ON_START=true
+
+[Install]
+WantedBy=default.target
