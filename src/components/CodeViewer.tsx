@@ -114,6 +114,16 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isSendDropdownOpen, setIsSendDropdownOpen] = useState(false);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -367,6 +377,7 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
                         </div>
                       </div>
                     )}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Input Area */}
