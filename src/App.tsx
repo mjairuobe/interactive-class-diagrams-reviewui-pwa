@@ -36,9 +36,13 @@ function getResponsiveZoomConfig(): ZoomConfig {
   const height = window.innerHeight;
   const isPortrait = height > width;
 
-  if (width < 768) {
+  // Um zu erkennen, ob es sich physisch um ein Smartphone oder Tablet handelt,
+  // nutzen wir die kürzere Seite des Bildschirms (da Handys im Landscape-Modus sehr breit werden).
+  const shortSide = Math.min(width, height);
+
+  if (shortSide < 600) {
     return isPortrait ? ZOOM_CONFIG.mobile.portrait : ZOOM_CONFIG.mobile.landscape;
-  } else if (width < 1024) {
+  } else if (shortSide < 1024) {
     return isPortrait ? ZOOM_CONFIG.tablet.portrait : ZOOM_CONFIG.tablet.landscape;
   } else {
     return isPortrait ? ZOOM_CONFIG.desktop.portrait : ZOOM_CONFIG.desktop.landscape;
