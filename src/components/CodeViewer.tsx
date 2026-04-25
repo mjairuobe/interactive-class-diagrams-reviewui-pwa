@@ -208,7 +208,7 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
         setMessages((prev) => [...prev, { 
           sender: "ai", 
           isHtml: true,
-          text: 'Die Datenbankabfrage zeigt, dass ein relationales Datenbankmanagementsystem verwendet wird. Anhand der <a href="#" class="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">requirements.txt</a> habe ich festgestellt, dass es sich um eine PostgreSQL-Datenbank handelt.'
+          text: 'Die Datenbankabfrage zeigt, dass ein relationales Datenbankmanagementsystem verwendet wird.<br/><br/>Anhand der Library <i>psycopg</i> in der <a href="#" class="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">requirements.txt</a> sehe ich, dass es sich um eine PostgreSQL-Datenbank handelt.'
         }]);
       }, 500);
       return;
