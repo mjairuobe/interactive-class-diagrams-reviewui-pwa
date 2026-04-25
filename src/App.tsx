@@ -455,9 +455,14 @@ function App() {
       if (el.tagName.toLowerCase() === 'path') {
         const clone = el.cloneNode() as SVGPathElement;
         clone.classList.add('click-clone');
+        // Entferne Marker, da diese sonst um das 30-fache (strokeWidth) mit skaliert werden und sichtbar bleiben!
+        clone.removeAttribute('marker-end');
+        clone.removeAttribute('marker-start');
+        clone.removeAttribute('marker-mid');
+        
         clone.style.strokeWidth = "30px";
-        clone.style.stroke = "transparent";
-        clone.style.fill = "none";
+        clone.style.setProperty('stroke', 'transparent', 'important');
+        clone.style.setProperty('fill', 'none', 'important');
         clone.style.cursor = "pointer";
         clone.style.pointerEvents = "stroke";
         clone.onclick = clickHandler;
