@@ -9,23 +9,99 @@ export interface CodeViewerProps {
   title: string;
 }
 
-const DUMMY_DIFF_CODE = `export class User {
-  public uuid: string;
-  public name: string;
-
-- public loginWithPassword() {
--   // old implementation
-- }
-+ public login() {
-+   // new implementation with OAuth
-+   this.authenticate();
-+ }
-
-  public logout() {
-    this.clearSession();
-  }
-}
-`;
+const DUMMY_DIFFS: Record<string, string> = {
+  "User": `+export class User {
++  public uuid: string;
++  public name: string;
++
++  constructor(uuid: string, name: string) {
++    this.uuid = uuid;
++    this.name = name;
++  }
++
++  public login() {
++    // authenticate via OAuth
++    Session.start(this.uuid);
++  }
++
++  public logout() {
++    Session.end(this.uuid);
++  }
++}
+`,
+  "Order": `+export class Order {
++  public id: string;
++  public created: Date;
++
++  constructor(id: string) {
++    this.id = id;
++    this.created = new Date();
++  }
++
++  public submit() {
++    // publish event to message broker
++    EventBus.publish('order_submitted', this);
++  }
++}
+`,
+  "Warehouse": ` export class Warehouse {
+   public id: string;
+   public location: string;
+   public products: Product[];
+ 
+   constructor(id: string, location: string) {
+     this.id = id;
+     this.location = location;
+     this.products = [];
+   }
+ 
+   public addProduct(product: Product) {
+     this.products.push(product);
+   }
+ }
+`,
+  "Product": ` // Renamed from Product to StorageObject
+-export class Product {
+-  public objectNumber: number;
++export class StorageObject {
++  public SKU: string;
+   public title: string;
+   public price: number;
+ 
+-  constructor(objectNumber: number, title: string, price: number) {
+-    this.objectNumber = objectNumber;
++  constructor(sku: string, title: string, price: number) {
++    this.SKU = sku;
+     this.title = title;
+     this.price = price;
+   }
+ 
+-  public list_products() {
+-    return DB.query(\`SELECT * FROM products WHERE obj_num = \${this.objectNumber}\`);
++  public list_products() {
++    // Optimized query using SKU index
++    return DB.query(\`SELECT * FROM storage_objects WHERE sku = '\${this.SKU}' LIMIT 100\`);
+   }
+ }
+`,
+  "Payment": ` export class Payment {
+   public id: string;
+-  public amount: number;
+ 
+-  constructor(id: string, amount: number) {
++  constructor(id: string) {
+     this.id = id;
+-    this.amount = amount;
+   }
+ 
+   public process() {
+-    Gateway.charge(this.id, this.amount);
++    // Amount is now dynamically calculated by the gateway
++    Gateway.chargeCurrentBalance(this.id);
+   }
+ }
+`
+};
 
 export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
   const [html, setHtml] = useState<string>("");
@@ -34,8 +110,12 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
     if (!isOpen) return;
     
     async function highlight() {
+      // Extrahiere den Klassennamen aus dem Titel (z.B. "Product.+list_products()" -> "Product")
+      const className = title.split('.')[0];
+      const diffCode = DUMMY_DIFFS[className] || \`// Keine Änderungen für \${className} gefunden.\\n\`;
+
       // Shiki configuration for highlighting diffs
-      const result = await codeToHtml(DUMMY_DIFF_CODE, {
+      const result = await codeToHtml(diffCode, {
         lang: "diff",
         theme: "github-dark",
       });
@@ -43,7 +123,7 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
     }
     
     highlight();
-  }, [isOpen]);
+  }, [isOpen, title]);
 
   return (
     <AnimatePresence>
