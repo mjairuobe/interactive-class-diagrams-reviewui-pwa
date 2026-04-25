@@ -112,7 +112,7 @@ export function CodeViewer({ isOpen, onClose, title }: CodeViewerProps) {
     async function highlight() {
       // Extrahiere den Klassennamen aus dem Titel (z.B. "Product.+list_products()" -> "Product")
       const className = title.split('.')[0];
-      const diffCode = DUMMY_DIFFS[className] || \`// Keine Änderungen für \${className} gefunden.\\n\`;
+      const diffCode = DUMMY_DIFFS[className] || `// Keine Änderungen für ${className} gefunden.\n`;
 
       // Shiki configuration for highlighting diffs
       const result = await codeToHtml(diffCode, {
