@@ -18,11 +18,11 @@ type ResponsiveZoomConfig = {
 
 const ZOOM_CONFIG: ResponsiveZoomConfig = {
   mobile: {
-    portrait: { percentage: 0.9, basedOn: "width" },
+    portrait: { percentage: 0.5, basedOn: "width" },
     landscape: { percentage: 0.75, basedOn: "height" },
   },
   tablet: {
-    portrait: { percentage: 0.7, basedOn: "width" },
+    portrait: { percentage: 0.5, basedOn: "width" },
     landscape: { percentage: 0.6, basedOn: "height" },
   },
   desktop: {
