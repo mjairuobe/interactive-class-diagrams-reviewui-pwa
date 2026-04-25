@@ -654,6 +654,18 @@ function App() {
       const inner = target.querySelector<HTMLElement>(".edgeLabel") || target.querySelector<HTMLElement>("span, div");
       if (!inner) return;
       
+      // Verstecke den störenden Standard-Hintergrund von Mermaid (oft ein <rect> Element hinter dem Label)
+      const rectBg = target.parentElement?.querySelector("rect");
+      if (rectBg) {
+        rectBg.style.display = "none";
+      }
+
+      // Verstecke auch eventuelle Backgrounds des Wrapper-Divs, falls vorhanden
+      const wrapperDiv = target.querySelector<HTMLElement>("div");
+      if (wrapperDiv && wrapperDiv !== inner) {
+        wrapperDiv.style.backgroundColor = "transparent";
+      }
+      
       const style = MARKER_STYLE[rm.marker];
       
       inner.style.backgroundColor = style.fill;
