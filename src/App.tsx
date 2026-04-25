@@ -593,6 +593,7 @@ function App() {
           centerOnInit={true}
           limitToBounds={false}
           panning={{ velocityDisabled: false }}
+          wheel={{ step: 0.005 }}
         >
           <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%" }}>
             <div
