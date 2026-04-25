@@ -378,12 +378,21 @@ function App() {
             if (id === rel.to) toNode = n;
           });
 
-          if (!wrapper || !fromNode || !toNode) {
+          if (!containerRef.current || !fromNode || !toNode) {
             focusClass(rel.to); // Fallback
             return;
           }
 
-          const wrapperRect = wrapper.getBoundingClientRect();
+          // Der Viewport ist der statische Bildschirm (bzw. das Fenster)
+          const viewportRect = {
+            left: 0,
+            top: 0,
+            right: window.innerWidth,
+            bottom: window.innerHeight,
+            width: window.innerWidth,
+            height: window.innerHeight,
+          } as DOMRect;
+
           const fromRect = fromNode.getBoundingClientRect();
           const toRect = toNode.getBoundingClientRect();
 
@@ -399,8 +408,8 @@ function App() {
             return totalArea > 0 ? visibleArea / totalArea : 0;
           };
 
-          const fromPct = getVisiblePercentage(fromRect, wrapperRect);
-          const toPct = getVisiblePercentage(toRect, wrapperRect);
+          const fromPct = getVisiblePercentage(fromRect, viewportRect);
+          const toPct = getVisiblePercentage(toRect, viewportRect);
 
           // Springe zu der Klasse, die prozentual weniger sichtbar ist
           if (fromPct < toPct) {
