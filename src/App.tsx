@@ -642,16 +642,29 @@ function App() {
   function applyRelationMarkers() {
     if (!containerRef.current) return;
     
+    // Parser, um echte Relation-Labels von Multiplizitäten zu unterscheiden
+    const relationLabelNames = new Set<string>();
+    const re = /([A-Za-z_][\w]*)\s*".*?"\s*-->\s*".*?"\s*([A-Za-z_][\w]*)\s*:\s*(.+)/g;
+    let m;
+    while ((m = re.exec(DIAGRAM)) !== null) {
+      relationLabelNames.add(m[3].trim());
+    }
+
     const fos = Array.from(containerRef.current.querySelectorAll<SVGForeignObjectElement>("foreignObject"));
     
     fos.forEach((fo) => {
-      if (fo.closest("g.classGroup, g.node")) return; // Nur Relation-Labels
+      if (fo.closest("g.classGroup, g.node")) return; // Nur Edge-Labels
+      
+      const labelText = (fo.textContent ?? "").trim();
+      
+      // Multiplizitäten ("1", "*") überspringen! Nur echte Relation-Labels verarbeiten.
+      if (!relationLabelNames.has(labelText)) return;
       
       // Finde das tiefste Label-Element
       const inner = fo.querySelector<HTMLElement>(".edgeLabel") || fo.querySelector<HTMLElement>("span, div");
       if (!inner) return;
       
-      let defaultBgColor = "#f1f5f9"; // Fallback, falls absolut gar keine Farbe gefunden wird
+      let defaultBgColor = "#f1f5f9"; // Fallback
       
       // 1. Suche Farbe auf dem SVG-<rect>
       const rectBg = fo.parentElement?.querySelector("rect");
@@ -661,7 +674,6 @@ function App() {
         if (fillAttr && fillAttr !== "none" && fillAttr !== "transparent") defaultBgColor = fillAttr;
         else if (computedFill && computedFill !== "none" && computedFill !== "transparent" && computedFill !== "rgba(0, 0, 0, 0)") defaultBgColor = computedFill;
         
-        // Das Original-Rect muss weg, sonst haben wir 2 verschobene Boxen übereinander!
         rectBg.style.display = "none";
       }
 
@@ -679,7 +691,6 @@ function App() {
         defaultBgColor = innerBg;
       }
 
-      const labelText = (fo.textContent ?? "").trim();
       const markerInfo = relationMarkers.find((rm) => rm.label === labelText);
       
       if (markerInfo) {
@@ -689,8 +700,6 @@ function App() {
         inner.style.fontWeight = "700";
         if (markerInfo.marker === "removed") inner.style.textDecoration = "line-through";
       } else {
-        // Für NICHT hervorgehobene Relationen:
-        // Wir nehmen exakt die Original-Farbe des SVG-<rect> (z.B. das Blau) als HTML-Hintergrund!
         inner.style.backgroundColor = defaultBgColor;
         inner.style.color = "";
         inner.style.fontWeight = "normal";
@@ -698,8 +707,6 @@ function App() {
       }
       
       inner.style.borderRadius = "6px";
-      
-      // Symmetrisches Padding für exakt zentrierten Text (bei allen Labels gleich!)
       inner.style.padding = "4px 12px";
       inner.style.margin = "0";
       inner.style.display = "inline-flex";
@@ -708,27 +715,42 @@ function App() {
       inner.style.textAlign = "center";
       inner.style.whiteSpace = "nowrap";
 
-      // Verhindere, dass die Box durch das foreignObject abgeschnitten wird
       fo.style.overflow = "visible";
-      
-      // Da das hinzugefügte Padding das Element nach rechts/unten wachsen lässt, 
-      // verschieben wir es zurück, damit es exakt über dem Ursprungsmittelpunkt zentriert bleibt.
       inner.style.transform = "translate(-12px, -4px)";
 
-      // SVG Z-Index Fix: Labels müssen NACH den Pfeilen im DOM stehen, um über ihnen gerendert zu werden!
-      // Wir suchen die höchste umschließende Gruppe (direkt unter SVG oder root-G) und schieben sie ans Ende.
-      let topLevelGroup = fo as Element;
-      while (
-        topLevelGroup.parentElement && 
-        topLevelGroup.parentElement.tagName.toLowerCase() !== "svg" && 
-        !topLevelGroup.parentElement.classList.contains("root")
-      ) {
-        topLevelGroup = topLevelGroup.parentElement;
-      }
-      if (topLevelGroup.parentElement) {
-        topLevelGroup.parentElement.appendChild(topLevelGroup);
+      // Verschiebe dieses einzelne Relation-Label in eine spezielle Top-Gruppe
+      const wrapperG = fo.closest("g.edgeLabel") || fo;
+      const svg = containerRef.current?.querySelector("svg");
+      const rootG = svg?.querySelector("g.root") || svg?.firstElementChild;
+      if (rootG) {
+        let topLabelsG = rootG.querySelector<SVGGElement>("g#custom-top-labels");
+        if (!topLabelsG) {
+          topLabelsG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          topLabelsG.id = "custom-top-labels";
+          rootG.appendChild(topLabelsG);
+        }
+        topLabelsG.appendChild(wrapperG);
       }
     });
+
+    // Exakte Z-Order Sortierung gemäß Vorgabe:
+    const svg = containerRef.current.querySelector("svg");
+    const rootG = svg?.querySelector("g.root") || svg?.firstElementChild;
+    if (rootG) {
+      const nodesG = rootG.querySelector("g.nodes") || rootG.querySelector(".classGroup")?.parentElement;
+      const edgeLabelsG = rootG.querySelector("g.edgeLabels"); // Beinhaltet jetzt NUR noch Multiplizitäten
+      const edgePathsG = rootG.querySelector("g.edgePaths"); // Beinhaltet Pfeile
+      const topLabelsG = rootG.querySelector("g#custom-top-labels"); // Beinhaltet RelationLabels
+
+      // 1. Klassen ganz hinten
+      if (nodesG) rootG.appendChild(nodesG);
+      // 2. Kardinalitäten/Multiplizitäten Labels
+      if (edgeLabelsG) rootG.appendChild(edgeLabelsG);
+      // 3. Pfeile (Implementation/Ableitung)
+      if (edgePathsG) rootG.appendChild(edgePathsG);
+      // 4. Relationlabels (über allem)
+      if (topLabelsG) rootG.appendChild(topLabelsG);
+    }
   }
 
   return (
