@@ -651,22 +651,32 @@ function App() {
       const inner = fo.querySelector<HTMLElement>(".edgeLabel") || fo.querySelector<HTMLElement>("span, div");
       if (!inner) return;
       
-      // Lese die Original-Hintergrundfarbe (fill) vom SVG-<rect> aus und verstecke es dann!
+      let defaultBgColor = "#f1f5f9"; // Fallback, falls absolut gar keine Farbe gefunden wird
+      
+      // 1. Suche Farbe auf dem SVG-<rect>
       const rectBg = fo.parentElement?.querySelector("rect");
-      let defaultBgColor = "transparent";
       if (rectBg) {
         const fillAttr = rectBg.getAttribute("fill");
         const computedFill = window.getComputedStyle(rectBg).fill;
-        defaultBgColor = (fillAttr && fillAttr !== "none") ? fillAttr : (computedFill && computedFill !== "none" ? computedFill : "transparent");
+        if (fillAttr && fillAttr !== "none" && fillAttr !== "transparent") defaultBgColor = fillAttr;
+        else if (computedFill && computedFill !== "none" && computedFill !== "transparent" && computedFill !== "rgba(0, 0, 0, 0)") defaultBgColor = computedFill;
         
         // Das Original-Rect muss weg, sonst haben wir 2 verschobene Boxen übereinander!
         rectBg.style.display = "none";
       }
 
-      // Verstecke auch eventuelle Backgrounds des Wrapper-Divs
+      // 2. Suche Farbe auf dem HTML Wrapper-Div
       const wrapperDiv = fo.querySelector<HTMLElement>("div");
       if (wrapperDiv && wrapperDiv !== inner) {
+        const bg = wrapperDiv.style.backgroundColor || window.getComputedStyle(wrapperDiv).backgroundColor;
+        if (bg && bg !== "none" && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)") defaultBgColor = bg;
         wrapperDiv.style.backgroundColor = "transparent";
+      }
+      
+      // 3. Suche Farbe auf dem inner Span selbst
+      const innerBg = inner.style.backgroundColor || window.getComputedStyle(inner).backgroundColor;
+      if (innerBg && innerBg !== "none" && innerBg !== "transparent" && innerBg !== "rgba(0, 0, 0, 0)") {
+        defaultBgColor = innerBg;
       }
 
       const labelText = (fo.textContent ?? "").trim();
