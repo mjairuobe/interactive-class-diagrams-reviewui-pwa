@@ -7,7 +7,7 @@ import { CodeViewer } from "./components/CodeViewer";
 // Konfigurierbare Responsive-Logik für den Zoom-Faktor
 type ZoomConfig = {
   percentage: number;
-  basedOn: "width" | "height" | "diagram-height";
+  basedOn: "width" | "height";
 };
 
 type ResponsiveZoomConfig = {
@@ -19,15 +19,15 @@ type ResponsiveZoomConfig = {
 const ZOOM_CONFIG: ResponsiveZoomConfig = {
   mobile: {
     portrait: { percentage: 0.9, basedOn: "width" },
-    landscape: { percentage: 0.75, basedOn: "diagram-height" },
+    landscape: { percentage: 0.75, basedOn: "height" },
   },
   tablet: {
     portrait: { percentage: 0.7, basedOn: "width" },
-    landscape: { percentage: 0.6, basedOn: "diagram-height" },
+    landscape: { percentage: 0.6, basedOn: "height" },
   },
   desktop: {
     portrait: { percentage: 0.6, basedOn: "width" },
-    landscape: { percentage: 0.5, basedOn: "diagram-height" },
+    landscape: { percentage: 0.5, basedOn: "height" },
   },
 };
 
@@ -281,18 +281,6 @@ function App() {
           scale = (containerWidth * config.percentage) / bbox.width;
         } else if (config.basedOn === "height" && bbox.height > 0) {
           scale = (containerHeight * config.percentage) / bbox.height;
-        } else if (config.basedOn === "diagram-height") {
-          const svgEl = containerRef.current.querySelector("svg");
-          if (svgEl) {
-            const viewBox = svgEl.getAttribute("viewBox");
-            if (viewBox) {
-              const [, , , h] = viewBox.split(" ");
-              const diagramHeight = parseFloat(h);
-              if (diagramHeight > 0) {
-                scale = (containerHeight * config.percentage) / diagramHeight;
-              }
-            }
-          }
         }
 
         if (isNaN(scale) || !isFinite(scale)) scale = 1;
