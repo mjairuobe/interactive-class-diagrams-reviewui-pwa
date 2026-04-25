@@ -208,8 +208,18 @@ function App() {
       const svgEl = containerRef.current.querySelector("svg");
       if (svgEl) {
         svgEl.style.maxWidth = "none"; // allow zooming beyond 100%
-        svgEl.style.height = "auto";
-        svgEl.removeAttribute("width");
+        
+        // Lese die tatsächlichen viewBox Dimensionen aus, um die physische DOM-Größe festzusetzen.
+        // Dadurch entspricht bbox.height genau den echten Pixeln, was für den korrekten Zoom essenziell ist.
+        const viewBox = svgEl.getAttribute("viewBox");
+        if (viewBox) {
+          const [, , w, h] = viewBox.split(" ");
+          svgEl.style.width = `${w}px`;
+          svgEl.style.height = `${h}px`;
+        } else {
+          svgEl.style.height = "auto";
+          svgEl.removeAttribute("width");
+        }
       }
       bindFunctions?.(containerRef.current);
       applyClassMarkers();
