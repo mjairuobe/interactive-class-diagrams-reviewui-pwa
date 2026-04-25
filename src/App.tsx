@@ -649,18 +649,34 @@ function App() {
         return (fo.textContent ?? "").trim() === rm.label;
       });
       if (!target) return;
-      const inner = target.querySelector<HTMLElement>("p, span, div");
+      
+      // Finde das tiefste Label-Element, um Mermaids Default-Styling direkt zu überschreiben
+      const inner = target.querySelector<HTMLElement>(".edgeLabel") || target.querySelector<HTMLElement>("span, div");
       if (!inner) return;
+      
       const style = MARKER_STYLE[rm.marker];
-      inner.style.background = style.fill;
+      
+      inner.style.backgroundColor = style.fill;
       inner.style.color = style.color;
       inner.style.fontWeight = "700";
-      inner.style.borderRadius = "5px";
+      inner.style.borderRadius = "6px";
+      
+      // Symmetrisches Padding für exakt zentrierten Text
       inner.style.padding = "4px 12px";
       inner.style.margin = "0";
-      inner.style.boxSizing = "border-box";
-      inner.style.display = "inline-block";
-      inner.style.lineHeight = "1.35";
+      inner.style.display = "inline-flex";
+      inner.style.justifyContent = "center";
+      inner.style.alignItems = "center";
+      inner.style.textAlign = "center";
+      inner.style.whiteSpace = "nowrap";
+
+      // Verhindere, dass die Box durch das foreignObject abgeschnitten wird
+      target.style.overflow = "visible";
+      
+      // Da das hinzugefügte Padding das Element nach rechts/unten wachsen lässt, 
+      // verschieben wir es zurück, damit es exakt über dem Ursprungsmittelpunkt zentriert bleibt.
+      inner.style.transform = "translate(-12px, -4px)";
+      
       if (rm.marker === "removed") inner.style.textDecoration = "line-through";
     });
   }
