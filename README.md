@@ -38,7 +38,7 @@ Ein Klick auf eine Relation wie `sells` animiert fließend zur Ziel-Klasse, ein 
 ### Nahtloses Einblenden von Quellcode
 Ein Klick auf die Methode `list_products()` schiebt den responsiven CodeViewer direkt ins Sichtfeld, ohne den Kontext zu verlieren.
 
-![CodeViewer Animation](public/open_codeviewer.webp)
+<img width="366" height="662" alt="Codeslide-in-ezgif com-video-to-webp-converter" src="https://github.com/user-attachments/assets/c0844e2d-89b6-4701-a579-34983c27dfd9" />
 
 ### KI-Assistent & Chat-Interface
 Direkt am Code kann durch Markieren ein Chat-Fenster geöffnet werden. Die KI antwortet auf Anfragen zum Code oder der Datenbank.
