@@ -350,74 +350,118 @@ function App() {
     }
 
     if (!containerRef.current) return;
+    
+    // 1. Sammle alle gültigen Labels
     const fos = Array.from(
       containerRef.current.querySelectorAll<SVGForeignObjectElement>("foreignObject")
     );
 
-    fos.forEach((fo) => {
-      if (fo.closest("g.classGroup, g.node")) return; // Ist innerhalb einer Klasse
+    const validLabels = fos.map((fo) => {
+      if (fo.closest("g.classGroup, g.node")) return null;
       const label = (fo.textContent ?? "").trim();
       const rel = relationsMap[label];
+      if (!rel) return null;
+      return { fo, rel, label };
+    }).filter(Boolean) as Array<{ fo: SVGForeignObjectElement, rel: { from: string, to: string }, label: string }>;
+
+    // Gemeinsame Klick-Logik
+    const handleRelationClick = (e: MouseEvent, rel: { from: string; to: string }) => {
+      e.stopPropagation();
+      e.preventDefault();
       
-      if (rel) {
-        const inner = fo.querySelector<HTMLElement>("p, span, div") || fo;
-        inner.style.cursor = "pointer";
-        inner.onclick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          
-          if (!containerRef.current) return;
-          const wrapper = containerRef.current.parentElement;
-          const nodes = containerRef.current.querySelectorAll<SVGGElement>("g.node, g.classGroup");
-          let fromNode: SVGGElement | null = null;
-          let toNode: SVGGElement | null = null;
-          
-          nodes.forEach(n => {
-            const id = nodeId(n);
-            if (id === rel.from) fromNode = n;
-            if (id === rel.to) toNode = n;
-          });
+      if (!containerRef.current) return;
+      const nodes = containerRef.current.querySelectorAll<SVGGElement>("g.node, g.classGroup");
+      let fromNode: SVGGElement | null = null;
+      let toNode: SVGGElement | null = null;
+      
+      nodes.forEach(n => {
+        const id = nodeId(n);
+        if (id === rel.from) fromNode = n;
+        if (id === rel.to) toNode = n;
+      });
 
-          if (!containerRef.current || !fromNode || !toNode) {
-            focusClass(rel.to); // Fallback
-            return;
+      if (!fromNode || !toNode) {
+        focusClass(rel.to); // Fallback
+        return;
+      }
+
+      const viewportRect = {
+        left: 0, top: 0,
+        right: window.innerWidth, bottom: window.innerHeight,
+        width: window.innerWidth, height: window.innerHeight,
+      } as DOMRect;
+
+      const fromRect = fromNode.getBoundingClientRect();
+      const toRect = toNode.getBoundingClientRect();
+
+      const getVisiblePercentage = (rect: DOMRect, wrap: DOMRect) => {
+        const left = Math.max(rect.left, wrap.left);
+        const right = Math.min(rect.right, wrap.right);
+        const top = Math.max(rect.top, wrap.top);
+        const bottom = Math.min(rect.bottom, wrap.bottom);
+        const w = Math.max(0, right - left);
+        const h = Math.max(0, bottom - top);
+        const visibleArea = w * h;
+        const totalArea = rect.width * rect.height;
+        return totalArea > 0 ? visibleArea / totalArea : 0;
+      };
+
+      if (getVisiblePercentage(fromRect, viewportRect) < getVisiblePercentage(toRect, viewportRect)) {
+        focusClass(rel.from);
+      } else {
+        focusClass(rel.to);
+      }
+    };
+
+    // 2. Labels klickbar machen
+    validLabels.forEach(({ fo, rel }) => {
+      const inner = fo.querySelector<HTMLElement>("p, span, div") || fo;
+      inner.style.cursor = "pointer";
+      inner.onclick = (e) => handleRelationClick(e, rel);
+    });
+
+    // 3. Pfeile/Linien (Paths/Polygons) klickbar machen
+    const edgeElements = Array.from(
+      containerRef.current.querySelectorAll<SVGElement>("path, polygon, line")
+    ).filter(el => !el.closest("g.node, g.classGroup") && !el.classList.contains('click-clone'));
+
+    edgeElements.forEach(el => {
+      el.style.cursor = "pointer";
+      
+      const clickHandler = (e: MouseEvent) => {
+        if (validLabels.length === 0) return;
+        
+        let closestRel = validLabels[0].rel;
+        let minDistance = Infinity;
+
+        // Finde das Label, das am nächsten zum Mausklick ist
+        validLabels.forEach(({ fo, rel }) => {
+          const rect = fo.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dist = Math.hypot(cx - e.clientX, cy - e.clientY);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closestRel = rel;
           }
+        });
 
-          // Der Viewport ist der statische Bildschirm (bzw. das Fenster)
-          const viewportRect = {
-            left: 0,
-            top: 0,
-            right: window.innerWidth,
-            bottom: window.innerHeight,
-            width: window.innerWidth,
-            height: window.innerHeight,
-          } as DOMRect;
+        handleRelationClick(e, closestRel);
+      };
 
-          const fromRect = fromNode.getBoundingClientRect();
-          const toRect = toNode.getBoundingClientRect();
+      el.onclick = clickHandler;
 
-          const getVisiblePercentage = (rect: DOMRect, wrap: DOMRect) => {
-            const left = Math.max(rect.left, wrap.left);
-            const right = Math.min(rect.right, wrap.right);
-            const top = Math.max(rect.top, wrap.top);
-            const bottom = Math.min(rect.bottom, wrap.bottom);
-            const w = Math.max(0, right - left);
-            const h = Math.max(0, bottom - top);
-            const visibleArea = w * h;
-            const totalArea = rect.width * rect.height;
-            return totalArea > 0 ? visibleArea / totalArea : 0;
-          };
-
-          const fromPct = getVisiblePercentage(fromRect, viewportRect);
-          const toPct = getVisiblePercentage(toRect, viewportRect);
-
-          // Springe zu der Klasse, die prozentual weniger sichtbar ist
-          if (fromPct < toPct) {
-            focusClass(rel.from);
-          } else {
-            focusClass(rel.to);
-          }
-        };
+      // Klon erstellen, um die Klick-Fläche (Hitbox) unsichtbar zu vergrößern
+      if (el.tagName.toLowerCase() === 'path') {
+        const clone = el.cloneNode() as SVGPathElement;
+        clone.classList.add('click-clone');
+        clone.style.strokeWidth = "30px";
+        clone.style.stroke = "transparent";
+        clone.style.fill = "none";
+        clone.style.cursor = "pointer";
+        clone.style.pointerEvents = "stroke";
+        clone.onclick = clickHandler;
+        el.parentElement?.appendChild(clone);
       }
     });
   }
