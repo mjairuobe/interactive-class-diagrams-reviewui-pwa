@@ -714,6 +714,20 @@ function App() {
       // Da das hinzugefügte Padding das Element nach rechts/unten wachsen lässt, 
       // verschieben wir es zurück, damit es exakt über dem Ursprungsmittelpunkt zentriert bleibt.
       inner.style.transform = "translate(-12px, -4px)";
+
+      // SVG Z-Index Fix: Labels müssen NACH den Pfeilen im DOM stehen, um über ihnen gerendert zu werden!
+      // Wir suchen die höchste umschließende Gruppe (direkt unter SVG oder root-G) und schieben sie ans Ende.
+      let topLevelGroup = fo as Element;
+      while (
+        topLevelGroup.parentElement && 
+        topLevelGroup.parentElement.tagName.toLowerCase() !== "svg" && 
+        !topLevelGroup.parentElement.classList.contains("root")
+      ) {
+        topLevelGroup = topLevelGroup.parentElement;
+      }
+      if (topLevelGroup.parentElement) {
+        topLevelGroup.parentElement.appendChild(topLevelGroup);
+      }
     });
   }
 
