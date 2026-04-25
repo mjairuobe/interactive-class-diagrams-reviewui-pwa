@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { codeToHtml } from "shiki";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageSquare, Send, ChevronDown, Bot, User } from "lucide-react";
