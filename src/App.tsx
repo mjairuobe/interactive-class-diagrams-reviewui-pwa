@@ -651,6 +651,24 @@ function App() {
       const inner = fo.querySelector<HTMLElement>(".edgeLabel") || fo.querySelector<HTMLElement>("span, div");
       if (!inner) return;
       
+      // Lese die Original-Hintergrundfarbe (fill) vom SVG-<rect> aus und verstecke es dann!
+      const rectBg = fo.parentElement?.querySelector("rect");
+      let defaultBgColor = "transparent";
+      if (rectBg) {
+        const fillAttr = rectBg.getAttribute("fill");
+        const computedFill = window.getComputedStyle(rectBg).fill;
+        defaultBgColor = (fillAttr && fillAttr !== "none") ? fillAttr : (computedFill && computedFill !== "none" ? computedFill : "transparent");
+        
+        // Das Original-Rect muss weg, sonst haben wir 2 verschobene Boxen übereinander!
+        rectBg.style.display = "none";
+      }
+
+      // Verstecke auch eventuelle Backgrounds des Wrapper-Divs
+      const wrapperDiv = fo.querySelector<HTMLElement>("div");
+      if (wrapperDiv && wrapperDiv !== inner) {
+        wrapperDiv.style.backgroundColor = "transparent";
+      }
+
       const labelText = (fo.textContent ?? "").trim();
       const markerInfo = relationMarkers.find((rm) => rm.label === labelText);
       
@@ -662,8 +680,8 @@ function App() {
         if (markerInfo.marker === "removed") inner.style.textDecoration = "line-through";
       } else {
         // Für NICHT hervorgehobene Relationen:
-        // Wir setzen KEINE eigene Hintergrundfarbe, sodass der Mermaid-Standard erhalten bleibt!
-        inner.style.backgroundColor = "";
+        // Wir nehmen exakt die Original-Farbe des SVG-<rect> (z.B. das Blau) als HTML-Hintergrund!
+        inner.style.backgroundColor = defaultBgColor;
         inner.style.color = "";
         inner.style.fontWeight = "normal";
         inner.style.textDecoration = "none";
