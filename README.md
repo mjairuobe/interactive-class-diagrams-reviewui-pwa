@@ -1,29 +1,59 @@
-# Mermaid-Klassendiagramm mit Markup (POC)
+# Interactive Class Diagrams ReviewUI (Mobile-First AI Review App)
 
-## Warum Klassendiagramme mit Markup?
+Das AI-Zeitalter hat die Softwareentwicklung grundlegend verändert. KI nimmt uns durch agentische Workflows viel Arbeit ab und produziert in kürzerer Zeit deutlich mehr Code-Output als ein einzelner Entwickler. Dadurch verschiebt sich der Fokus des Entwicklers vom bloßen Schreiben von Code hin zum architektonischen Denken. 
 
-Ich habe in [Mobile-first AI-Review-App (Konzept)](https://github.com/mjairuobe/Mobile-first-AI-Review-App-Konzept-) beschrieben, dass Mobile-First Tools für Softwareentwicklung fehlen, was im AI Zeitalter jedoch von größerer Bedeutung sein kann. Der Schwerpunkt beim Entwickeln von Software rückt ohnehin vom bloßen Tippen zur hin zur Softwarearchitektur – das sind Denkprozesse. Denken kann man von überall aus.
+Die meiste Denkarbeit passiert jedoch nicht auf Knopfdruck am Schreibtisch. Die besten Ideen kommen mir oft in Alltagssituationen, etwa beim Zähneputzen. Unser Bewusstsein ist der Richtungsgeber, während das Unterbewusstsein Hintergrundprozesse verarbeitet. Wenn ich also unterwegs einen Einfall habe, muss ich KI-Agenten auch direkt von meinem Smartphone aus anstoßen und ihre Arbeit überprüfen können. Heutige Entwickler-Tools sind aber kaum für "Mobile-first" ausgelegt.
 
-Um sich schneller Überblick über große Codebasen zu schaffen, halte ich interaktive Klassendiagramme mit Markups für sinnvoll. 
+## Hintergrund
 
-## Klassendiagramm mit Markups
+In meinen vorherigen Konzepten ([markup-class-diagram-ui-poc](https://github.com/mjairuobe/markup-class-diagram-ui-poc) und [Mobile-first-AI-Review-App-Konzept](https://github.com/mjairuobe/Mobile-first-AI-Review-App-Konzept-)) habe ich beschrieben, dass wir neue Tools brauchen, um auch große, komplexe Codebasen vom Handy aus schnell überblicken und prüfen zu können. 
 
-![Klassendiagramm mit Markup (Hyperlinks, Diff-Highlighting)](./markup-cd-mermaid.png)
+Klassendiagramme (z.B. generiert durch Mermaid) eignen sich hierfür hervorragend, da sie auf einem hochformatigen Handydisplay meist ohne viel Scrollen darstellbar sind und einen sofortigen architektonischen Überblick liefern. Geänderte Funktionen oder Variablen können direkt im Diagramm hervorgehoben und interaktiv klickbar gemacht werden.
 
-Mithilfe von Klassendiagrammen lassen sich Ausgaben von `git diff` übersichtlicher darstellen. So können Änderungen in größere unbekannte Codebasen schnell erfasst werden. 
+## Zielsetzung (Proof of Concept)
 
-## Ausblick: Interaktive Klassendiagramme
+Dieses Proof of Concept (PoC) zielt darauf ab, einen **nahtlosen, Mobile-first Review-Prozess** über interaktive Klassendiagramme zu schaffen:
 
-Mit wachsender Codebasis werden Visualisierungen von Klassenhierarchien schnell sehr groß. Ein großes Diagramm auf einem Smartphone ist ebenfalls nicht sehr übersichtlich.
+- **Automatische Generierung:** Klassendiagramme werden bei jedem Commit (z.B. aus Git-Diffs) automatisch aktualisiert.
+- **Interaktive Relationen:** Mit Klicks auf Relationen (z.B. `sells` oder `pays`) lässt sich butterweich zwischen Klassen hin- und hernavigieren ("Boomerang"-Effekt).
+- **Code-Einblicke:** Ein Klick auf Methoden oder Deklarationen im Diagramm öffnet einen CodeViewer im Slider, um sofort die konkrete Implementation zu betrachten.
+- **KI-Unterstützung:** Direkt im CodeViewer kann über ein Kontextmenü ("Ask / Comment") ein KI-Chat gestartet werden, um Rückfragen zum Quellcode zu stellen oder Aufgaben per Webhook an Agenten zu delegieren.
 
-Das Ziel von einer Interaktion mit Klassendiagrammen ist:
+### Visuelle Legende für Codeänderungen im Diagramm
 
-- Klassendiagramme automatisch bei einem Commit generieren
+Um Modifikationen im Diagramm schnell erfassen zu können, nutzen wir eine einfache Farblogik:
 
-- per Klick nahtlos in die geänderten Code einer Methode springen (hier z. B. list_products) – Tools wie [snappify](https://snappify.com) visualisieren Quellcode sehr ansehnlich
+*   <span style="color: #eab308; font-weight: bold;">🟨 Gelb</span>: Der Code in dieser Methode/Klasse wurde **geändert**.
+*   <span style="color: #22c55e; font-weight: bold;">🟩 Grün</span>: Dieser Code ist komplett **neu hinzugekommen**.
+*   <span style="color: #ef4444; font-weight: bold;">🟥 Rot</span>: Dieser Code wurde **entfernt**.
 
-- zwei Ansichten: Gesamtansicht der Klassenhierarchie oder responsiver: einer einzelnen Klasse – eine Klasse lässt sich gut auf einem Smartphonebildschirm darstellen
+*(Anmerkung: In diesem PoC wurden die Dummy-Diffs noch nicht farblich im Diagramm abgebildet, das ist Teil der Ausbaustufe!)*
 
-- die Darstellung in einem Canvas mit Pan/Zoom Funktionalität
+## Demo & Impressionen
 
-- beim Klick auf Implementationspfeilen oder Relations kann zu der Ansicht anderer Objekte gesprungen werden (z. B. beim Betrachten der Product-Klasse wird beim Klick auf die `sells`Relation ein Übergang zu der Order-Klasse animiert)
+### Nahtlose Navigation zwischen Klassen (Boomerang-Effekt)
+Ein Klick auf eine Relation wie `sells` animiert fließend zur Ziel-Klasse, ein erneuter Klick bringt uns wieder zurück.
+
+![Boomerang Navigation](public/boomerang_sells.webp)
+
+### Nahtloses Einblenden von Quellcode
+Ein Klick auf die Methode `list_products()` schiebt den responsiven CodeViewer direkt ins Sichtfeld, ohne den Kontext zu verlieren.
+
+![CodeViewer Animation](public/open_codeviewer.webp)
+
+### KI-Assistent & Chat-Interface
+Direkt am Code kann durch Markieren ein Chat-Fenster geöffnet werden. Die KI antwortet auf Anfragen zum Code oder der Datenbank.
+
+![KI Chat Interface](public/chat_hq.png)
+
+### Agentische Aktionen via Webhook
+Aus dem Chat heraus lassen sich Aktionen über ein Dropdown-Menü direkt an externe Systeme delegieren (z.B. Webhooks).
+
+![Webhook Senden](public/chat_webhook_menu.png)
+
+## Ausblick
+
+Das PoC beweist: Code-Reviews und Architektur-Verständnis lassen sich sehr wohl auf Smartphones portieren. Die nächsten Schritte wären:
+1.  **Dynamische Backend-Anbindung:** Ersetzen der Dummy-Diffs durch echte Git-Integration (automatische Generierung der Mermaid-Graphen).
+2.  **Farbliches Diff-Highlighting im Diagramm:** Die oben genannte Farblegende als CSS-Styles auf die SVG-Elemente anwenden.
+3.  **Template-System für Responses:** Längenbegrenzungen und klare Vorlagen für KI-Antworten, damit Reviews noch schneller konsumierbar sind (z.B. für Bugfix-Reports oder PR-Summaries).
