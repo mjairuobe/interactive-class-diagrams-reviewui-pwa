@@ -41,7 +41,8 @@ Ein Klick auf eine Relation wie `sells` animiert fließend zur Ziel-Klasse, ein 
 ### Einfaches Reviewen von Quellcode
 Ein Klick auf die Methode `list_products()` schiebt den responsiven CodeViewer direkt ins Sichtfeld, ohne den Kontext zu verlieren.
 
-<img width="1042" height="2167" alt="4494" src="https://github.com/user-attachments/assets/bf1762cc-858d-4dee-9f32-ab8b7ca9175f" />
+<img width="1077" height="2167" alt="4479" src="https://github.com/user-attachments/assets/e56e4ea0-967c-4a09-8970-69bf768a03e4" />
+
 
 
 ### KI-Assistent & Chat-Interface
