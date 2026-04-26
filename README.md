@@ -41,17 +41,19 @@ Ein Klick auf eine Relation wie `sells` animiert fließend zur Ziel-Klasse, ein 
 ### Einfaches Reviewen von Quellcode
 Ein Klick auf die Methode `list_products()` schiebt den responsiven CodeViewer direkt ins Sichtfeld, ohne den Kontext zu verlieren.
 
-<img width="1077" height="2167" alt="4479" src="https://github.com/user-attachments/assets/096001d0-b8c5-41a2-b6e8-744f6139de9c" />
+<img width="1042" height="2167" alt="4494" src="https://github.com/user-attachments/assets/bf1762cc-858d-4dee-9f32-ab8b7ca9175f" />
+
 
 ### KI-Assistent & Chat-Interface
 Direkt am Code kann durch Markieren ein Chat-Fenster geöffnet werden. Die KI antwortet auf Anfragen zum Code oder der Datenbank.
 
 <img width="1080" height="2400" alt="4488" src="https://github.com/user-attachments/assets/459c05f9-c190-493a-ab10-e718106dd759" />
 
+
 ### Agentische Aktionen via Webhook
 Aus dem Chat heraus lassen sich Aktionen über ein Dropdown-Menü direkt an externe Systeme delegieren (z.B. Webhooks).
 
-<img width="1058" height="2164" alt="4493" src="https://github.com/user-attachments/assets/a9a2b46e-c64a-4277-8403-9ed90a7cc742" />
+<img width="1042" height="2167" alt="4495" src="https://github.com/user-attachments/assets/ef0d4d9f-d4ec-4236-9ceb-3161e2967106" />
 
 
 ## Ausblick
