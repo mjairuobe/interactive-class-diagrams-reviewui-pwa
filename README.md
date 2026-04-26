@@ -48,13 +48,13 @@ Ein Klick auf die Methode `list_products()` schiebt den responsiven CodeViewer d
 ### KI-Assistent & Chat-Interface
 Direkt am Code kann durch Markieren ein Chat-Fenster geöffnet werden. Die KI antwortet auf Anfragen zum Code oder der Datenbank.
 
-<img width="1080" height="2400" alt="4488" src="https://github.com/user-attachments/assets/459c05f9-c190-493a-ab10-e718106dd759" />
+<img width="1042" height="2167" alt="4495" src="https://github.com/user-attachments/assets/ef0d4d9f-d4ec-4236-9ceb-3161e2967106" />
 
 
 ### Agentische Aktionen via Webhook
 Aus dem Chat heraus lassen sich Aktionen über ein Dropdown-Menü direkt an externe Systeme delegieren (z.B. Webhooks).
 
-<img width="1042" height="2167" alt="4495" src="https://github.com/user-attachments/assets/ef0d4d9f-d4ec-4236-9ceb-3161e2967106" />
+<img width="1058" height="2164" alt="4493" src="https://github.com/user-attachments/assets/8dbaf972-5cb1-4801-b1b8-337b0393f36a" />
 
 
 ## Ausblick
