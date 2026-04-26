@@ -33,12 +33,12 @@ Um Modifikationen im Diagramm schnell erfassen zu können, nutzen wir eine einfa
 ### Nahtlose Navigation zwischen Klassen
 Ein Klick auf eine Relation wie `sells` animiert fließend zur Ziel-Klasse, ein erneuter Klick bringt uns wieder zurück.
 
-![Boomerang Navigation](public/boomerang_sells.webp)
+<img width="1080" height="2167" alt="4480" src="https://github.com/user-attachments/assets/0a2a7e6e-efa8-4267-9828-f871ba6065a9" />
 
 ### Nahtloses Einblenden von Quellcode
 Ein Klick auf die Methode `list_products()` schiebt den responsiven CodeViewer direkt ins Sichtfeld, ohne den Kontext zu verlieren.
 
-<img width="366" height="662" alt="Codeslide-in-ezgif com-video-to-webp-converter" src="https://github.com/user-attachments/assets/c0844e2d-89b6-4701-a579-34983c27dfd9" />
+<img width="1077" height="2167" alt="4479" src="https://github.com/user-attachments/assets/096001d0-b8c5-41a2-b6e8-744f6139de9c" />
 
 ### KI-Assistent & Chat-Interface
 Direkt am Code kann durch Markieren ein Chat-Fenster geöffnet werden. Die KI antwortet auf Anfragen zum Code oder der Datenbank.
