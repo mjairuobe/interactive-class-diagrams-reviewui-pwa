@@ -51,7 +51,7 @@ Direkt am Code kann durch Markieren ein Chat-Fenster geöffnet werden. Die KI an
 ### Agentische Aktionen via Webhook
 Aus dem Chat heraus lassen sich Aktionen über ein Dropdown-Menü direkt an externe Systeme delegieren (z.B. Webhooks).
 
-<img width="1080" height="2400" alt="4491" src="https://github.com/user-attachments/assets/cd65b0a2-2d34-4340-8d48-68240c3ac206" />
+<img width="1058" height="2164" alt="4493" src="https://github.com/user-attachments/assets/a9a2b46e-c64a-4277-8403-9ed90a7cc742" />
 
 
 ## Ausblick
